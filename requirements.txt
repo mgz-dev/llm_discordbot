@@ -1,0 +1,12 @@
+accelerate==0.18.0
+bitsandbytes @ https://github.com/jllllll/bitsandbytes-windows-webui/raw/main/bitsandbytes-0.37.2-py3-none-any.whl
+discord==2.2.2
+discord.py==2.2.2
+huggingface-hub==0.13.3
+ninja==1.11.1
+safetensors==0.3.0
+sentencepiece
+numpy
+requests
+tqdm
+git+https://github.com/huggingface/transformers
