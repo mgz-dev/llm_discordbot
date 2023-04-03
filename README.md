@@ -1,4 +1,5 @@
 # llm_discordbot
+
  Connect Large Language Models to Discord Bots
 
  This discord bot is set up to support models which utilize the huggingface pipeline, though not all models have been tested for proper compatibility.
@@ -19,6 +20,30 @@
  Note: The bitsandbytes wheel referenced in the requirements.txt file is for Windows. For WSL or Linux change to `bitsandbytes==0.37.2`
 
  ## Getting Started
+
+ - Characters are stored as .json files. Prompt handling is set up to *mostly* follow popular conventions.
+ {{char}} in text will automatically be replaced with character's name `char_name`
+ - In conversation history, the DiscordBot's Discord Username will be replaced with `char_name` automatically when being fed into the model.
+
+ Additional resources to make your own characters:
+ - https://zoltanai.github.io/character-editor/
+ - https://devkats.club/pygmalion-cct/
+
+ TO DO: Set up ability to change tokens {{user}} to specific name for context 
+
+
+## Bot commands from Discord Chat
+
+| Commands         | Description |
+|------------------|-------------|
+| @mention or reply |Bot will respond |
+| `!setlimit <int>`|Update the number of historical messages the bot will refer to|
+| `!updateparam <param:str> <value>` |Update generation param {temperature, top_p, do_sample, etc}|
+| `!updateparam <param:str>` |check current parameter value|
+| `!updatecharacter <character:str>` |Swap to a different character config|
+
+
+## Start up flag commands through argparse
 
 | Flag             | Description |
 |------------------|-------------|
