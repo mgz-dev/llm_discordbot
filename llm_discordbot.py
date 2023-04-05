@@ -5,7 +5,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 from discord.ext import commands
 from modules.models import ChatBotModel
-from modules.context import generate_prompt
+from modules.character import CharacterPersona
 
 def main(args, chatbot):
     intents = discord.Intents.default()
@@ -61,17 +61,16 @@ def main(args, chatbot):
             message_tuple: tuple[discord.Message, discord.Message, list] = await queue.get()
             current_message, last_message, message_history = message_tuple
 
-            message_history_clean = [f"{message.author.display_name.strip()}: {message.clean_content.strip()}" for message in message_history]
-            current_message_clean = f'{current_message.author.display_name.strip()}: {current_message.clean_content.strip()}'
+            message_history_clean = [(message.author.display_name.strip(), message.clean_content.strip()) for message in message_history]
+            current_message_clean = (current_message.author.display_name.strip(), current_message.clean_content.strip())
             if last_message:
-                last_message_clean = f'{last_message.author.display_name.strip()}: {last_message.clean_content.strip()}'
+                last_message_clean = (last_message.author.display_name.strip(), last_message.clean_content.strip())
             else:
                 last_message_clean = None
 
-            prompt = generate_prompt(chatbot, 
-                                     current_message_clean,
-                                     last_message_clean,
-                                     message_history_clean)
+            prompt = chatbot.generate_prompt(current_message_clean,
+                                             last_message_clean,
+                                             message_history_clean)
 
             response = await loop.run_in_executor(executor, chatbot.generate_reply, prompt)
             print(f"|| Prompt ||\n{prompt}\n\n||Response||\n{response}\n")
@@ -152,7 +151,14 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--character", type=str, default = "default_character", 
                         help="Input character json filename  within character subdirectory")
     parser.add_argument("-p", "--params", type=str, default = "default_params")
+    parser.add_argument("-pl", "--persistent_logs", action="store_true", help="Use persistent character log")
+    parser.add_argument("-hl", "--history_limit", default=10, type=int, help="How many messages of history to use as context")
+    parser.add_argument("-pdc", "--permanent_dialogue_context", action="store_true", help="Make character dialogue examples permanent context")
     args = parser.parse_args()
     print(f'model: {args.model_name}, character: {args.character}, params: {args.params}')
-    chatbot = ChatBotModel(args.model_name, args.character, args.params)
+
+    character_path = os.path.join('characters', args.character+'.json')
+    character_persona = CharacterPersona(character_path, args.permanent_dialogue_context, args.persistent_logs)
+
+    chatbot = ChatBotModel(args.model_name, character_persona, args.params, args.history_limit)
     main(args, chatbot)

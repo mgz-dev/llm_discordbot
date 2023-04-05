@@ -13,7 +13,7 @@
  
  Next clone repository and install requirements
  ```
- git clone 
+ git clone https://github.com/mgz-dev/llm_discordbot
  cd llm_discordbot
  pip install -r requirements.txt
  ``` 
@@ -39,7 +39,7 @@
 | @mention or reply |Bot will respond |
 | `!setlimit <int>`|Update the number of historical messages the bot will refer to|
 | `!updateparam <param:str> <value>` |Update generation param {temperature, top_p, do_sample, etc}|
-| `!updateparam <param:str>` |check current parameter value|
+| `!printparam <param:str>` |check current parameter value|
 | `!updatecharacter <character:str>` |Swap to a different character config|
 
 
@@ -51,7 +51,26 @@
 | `-m`, `--model_name`|load in model from subfolder in models|
 | `-c`, `--character`   |load in character.json from characters|
 | `-p`, `--params`   | load in params.json from config/params|
+| `-pl`, `--persistent_logs`| save to a persistent character log | 
+| `-hl`, `--history_limit`   | limit lookback history in chat for bot |
+  `-p`, `--permanent_dialogue` | make example dialogue in character card permanent context |
+
+
+## Changelog
+### (4/5) 
+- Added logging for chats
+- Refactored into character class method
+
+
+## To-Do
+- Update bot to own class
+- Implement cogs
+- Add model download instructions
+- Add support for quantized models
+- Add support for LoRA
+- Add support for Adapters
+
 
  ## Credits
- This implementation is based on [teknium's Alpaca Discord Bot repo](https://github.com/teknium1/alpaca-roleplay-discordbot).
- Thanks for the great work!
+ The discord interface implementation is based on [teknium's Alpaca Discord Bot repo](https://github.com/teknium1/alpaca-roleplay-discordbot)
+ bitsandbytes windows conversion credit to [Adrian Popescu](https://github.com/acpopescu/bitsandbytes/tree/cmake_windows) and compiled by [jllllll](https://github.com/jllllll/bitsandbytes-windows-webui)
