@@ -155,6 +155,8 @@ cython_debug/
 repositories/
 characters/private
 logs/
+config/config.json
 models/
 *.safetensors
 *.pt
+

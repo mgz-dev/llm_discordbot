@@ -24,12 +24,11 @@
  - Characters are stored as .json files. Prompt handling is set up to *mostly* follow popular conventions.
  {{char}} in text will automatically be replaced with character's name `char_name`
  - In conversation history, the DiscordBot's Discord Username will be replaced with `char_name` automatically when being fed into the model.
+ - Configure your bot and discord server settings under `config/config.json`
 
  Additional resources to make your own characters:
  - https://zoltanai.github.io/character-editor/
  - https://devkats.club/pygmalion-cct/
-
- TO DO: Set up ability to change tokens {{user}} to specific name for context 
 
 
 ## Bot commands from Discord Chat
@@ -37,11 +36,19 @@
 | Commands         | Description |
 |------------------|-------------|
 | @mention or reply |Bot will respond |
-| `!setlimit <int>`|Update the number of historical messages the bot will refer to|
-| `!updateparam <param:str> <value>` |Update generation param {temperature, top_p, do_sample, etc}|
-| `!printparam <param:str>` |check current parameter value|
-| `!updatecharacter <character:str>` |Swap to a different character config|
+| `/setlimit <int>`|Update the number of historical messages the bot will refer to|
+| `/updateparam <param:str> <value>` |Update generation param {temperature, top_p, do_sample, etc}|
+| `/printparam <param:str>` |check current parameter value|
+| `/updatecharacter <character:str>` |Swap to a different character config|
+| `/reset_channel` | Delete and recreate current channel |
+| `/instruct <persona:str> <instruction:str>` | Provide persona and instruction|
+| `/trivia` | Generate a trivia question|
+| `/conversation_starter<topic:str>`| Start a conversation|
+| `/inspirational_quote`|Write an inspirational quote|
+| `/random_fact`|Write a random fact|
+| `/rhyme <word:str>`|Rhyme word|
 
+instruct personas = ["casual", "professional", "storyteller", "sme", "ai"]
 
 ## Start up flag commands through argparse
 
@@ -57,13 +64,18 @@
 
 
 ## Changelog
+
+### (4/20)
+- Migrated to slash commands and Client chatbot
+- Added new slash commands for prompting
+- Migrated configs and key into config.json
+
 ### (4/5) 
 - Added logging for chats
 - Refactored into character class method
 
 
 ## To-Do
-- Update bot to own class
 - Implement cogs
 - Add model download instructions
 - Add support for quantized models
