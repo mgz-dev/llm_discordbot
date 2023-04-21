@@ -1,10 +1,12 @@
+import re
+
 def replace_name_tokens(text, char_name, user_name):
     text = text.replace('{{user}}', user_name).replace('<USER>', user_name)
     text = text.replace('{{char}}', char_name).replace('<BOT>', char_name)
     return text
 
 
-def replace_discord_names(messages, discord_name, char_name):
+def clean_messages(messages, discord_name, char_name):
     is_tuple = False
 
     if type(messages) == tuple:
@@ -12,15 +14,24 @@ def replace_discord_names(messages, discord_name, char_name):
         messages = [messages]
     fixed_messages = []
     for username, message in messages:
-
-        fixed_message = message.replace(discord_name, char_name)
-        fixed_username = username.replace(discord_name, char_name)
+        fixed_username, fixed_message = replace_discord_names(username, message, discord_name, char_name)
+        fixed_message = clean_emoji_numbers(fixed_message)
         fixed_messages.append((fixed_username, fixed_message))
 
     if is_tuple:
         return fixed_messages[0]
     else:
         return fixed_messages
+
+def clean_emoji_numbers(message):
+    pattern = r'<a?(:\w+):\d+>'
+    cleaned_message = re.sub(pattern, r'\1:', message)
+    return cleaned_message
+
+def replace_discord_names(username, message, discord_name, char_name):
+    fixed_message = message.replace(discord_name, char_name)
+    fixed_username = username.replace(discord_name, char_name)
+    return fixed_username, fixed_message
 
 
 def generate_history(tokenizer, 
@@ -37,15 +48,15 @@ def generate_history(tokenizer,
 
     # Pre-allocate tokens for current_message and last_message if present
     if current_message:
-        current_message = replace_discord_names(current_message, discord_name, char_name)
+        current_message = clean_messages(current_message, discord_name, char_name)
         consumed_tokens += len(tokenizer.encode(delim.join(current_message)))
 
     if last_message:
-        last_message = replace_discord_names(last_message, discord_name, char_name)
+        last_message = clean_messages(last_message, discord_name, char_name)
         consumed_tokens += len(tokenizer.encode(delim.join(last_message)))
 
     if message_history:
-        message_history = replace_discord_names(message_history, discord_name, char_name)
+        message_history = clean_messages(message_history, discord_name, char_name)
 
         for past_message in message_history:
             # If last_message is in history then set last_message to None 
@@ -100,3 +111,17 @@ def generate_temporary_context(tokenizer,
 
     temporary_context = '\n'.join(reversed(reversed_context_messages))
     return temporary_context
+
+def fetch_instruct_preprompt(persona: str):
+    if persona == "casual":
+        context = "Imagine you are a friendly and casual person, eager to help others in a laid-back manner. Answer the following question or request while maintaining a lighthearted tone."
+    elif persona == "professional":
+        context = "As a professional with a deep understanding of the subject matter, provide a concise and well-organized response to the following question or request:"
+    elif persona == "storyteller":
+        context = "Picture yourself as a storyteller who enjoys weaving engaging narratives. When answering the following question or request, craft your response as an interesting story that captivates the reader."
+    elif persona == "sme":
+        context = "Assume you are an expert in the relevant field, and you're explaining the concept to someone new to the subject. Offer a clear, informative response to the following question or request, using analogies or examples where appropriate."
+    else:
+        context = "Imagine you are an advanced state-of-the-art language model capable of understanding and analyzing complex topics with ease. Provide a comprehensive and insightful response to the following query or request, demonstrating your deep knowledge and critical thinking skills."
+    print(f"Personality: {context}")
+    return context

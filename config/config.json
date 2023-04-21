@@ -1,0 +1,6 @@
+{
+    "required_role_name": "bot_admin_rolename",
+    "my_guild": guild_id_here,
+    "my_id": your_id_here,
+    "key": "your_key_here"
+}

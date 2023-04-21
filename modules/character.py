@@ -10,13 +10,14 @@ class Persona(object):
     """
 
 class CharacterPersona(Persona):
-    def __init__(self, persona_json_dir: str, permanent_dialogue_context, persistent_logs):
+    def __init__(self, persona_name: str, permanent_dialogue_context, persistent_logs):
         # Character qualities
         self.char_name = None
         self.char_persona = None
         self.world_scenario = None
         self.example_dialogue = None
         self.char_greeting = None
+        self.persistent_logs = persistent_logs
 
         # Character settings
         self.permanent_dialogue_context = permanent_dialogue_context
@@ -25,28 +26,37 @@ class CharacterPersona(Persona):
         self.user_name = "You"
 
         # Initialization
-        self.load_persona(persona_json_dir)
-
-        # Memories
-        self.chat_history = defaultdict(list)
-
-        if persistent_logs:
-            self.log_path = os.path.join('logs', self.char_name+"_"+"persistent"+".json")
-            if os.path.exists(self.log_path):
-                print("\n|| Existing logs found... loading ||\n")
-                logs = load_json(self.log_path)
-                self.chat_history = logs['chat_history']
-            else:
-                print("\n|| No log found, new log will be generated ||\n")
-        else:
-            self.log_path = os.path.join('logs', self.char_name+"_"+datetime.now().strftime("%m%d%H%M%S")+".json")
+        self.load_persona(persona_name)
 
 
-    def load_persona(self, persona_json_dir:str):
+    def fetch_persona_json_path(self, persona_name):
+
+        folder_delim = ["\\\\", "//", "\\", "/"]
+        for delim in folder_delim:
+            if delim in persona_name:
+                persona_name = persona_name.split(delim)
+    
+        if type(persona_name)==str:
+            persona_name = [persona_name]
+
+        persona_name[-1] = persona_name[-1] + '.json'
+
+        persona_dir = ["characters"] + persona_name
+
+        persona_path = os.path.join(*persona_dir)
+
+        return persona_path
+
+
+    def load_persona(self, persona_name):
+        persona_json_dir = self.fetch_persona_json_path(persona_name)
+        print(persona_json_dir)
+
         char_data = load_json(persona_json_dir)
 
         for key, value in char_data.items():
-            char_data[key] = value.strip()
+            if type(value)==str:
+                char_data[key] = value.strip()
 
         # These are permanent and establish 
         char_name = char_data.get('char_name', 'ChatBot')
@@ -74,6 +84,24 @@ class CharacterPersona(Persona):
         self.world_scenario = world_scenario
         self.char_greeting = char_greeting
         self.example_dialogue = example_dialogue
+
+        self.setup_memories()
+
+
+    def setup_memories(self):
+        # Memories
+        self.chat_history = defaultdict(list)
+
+        if self.persistent_logs:
+            self.log_path = os.path.join('logs', self.char_name+"_"+"persistent"+".json")
+            if os.path.exists(self.log_path):
+                print("\n|| Existing logs found... loading ||\n")
+                logs = load_json(self.log_path)
+                self.chat_history = logs['chat_history']
+            else:
+                print("\n|| No log found, new log will be generated ||\n")
+        else:
+            self.log_path = os.path.join('logs', self.char_name+"_"+datetime.now().strftime("%m%d%H%M%S")+".json")
 
 
     def generate_context(self, char_name=None, user_name=None):

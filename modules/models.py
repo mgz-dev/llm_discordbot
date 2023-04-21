@@ -1,21 +1,19 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 import torch, os, time
 from datetime import datetime
 from modules.utils import load_json, clear_cache
 from modules.character import CharacterPersona
-from modules.text_utils import generate_history, generate_temporary_context
+from modules.text_utils import generate_history, generate_temporary_context, fetch_instruct_preprompt
 
 class ChatBotModel:
     def __init__(self, model_name, character_persona, param_name, history_limit=10):
 
         model_dir = os.path.join('models', model_name)
-        param_dir = os.path.join('config', 'params', param_name+'.json')
-        self.log_path = character_persona.log_path
-
+        param_dir = os.path.join('config', param_name+'.json')
+        
         self.tokenizer = AutoTokenizer.from_pretrained(model_dir)
         self.tokenizer.truncation_side = 'left'
         print(f'\n|| TOKENIZER INITIALIZED: {self.tokenizer}')
-
 
         self.model = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=model_dir,
@@ -28,11 +26,22 @@ class ChatBotModel:
         print(f'|| \nPARAMS: {self.params}\n||\n')
 
         self.discord_name = ""
-        self.message_history_limit = history_limit 
+        self.message_history_limit = history_limit
+        self.log_path = character_persona.log_path
         self.character_persona = character_persona
         self.character_name = character_persona.char_name
         self.max_tokens = 2000
 
+
+    def load_persona(self, character):
+        self.character_persona.load_persona(character)
+        self.character_name = self.character_persona.char_name
+        self.log_path = self.character_persona.log_path
+
+    def generate_instruct(self, persona: str, instruct: str):
+        context = fetch_instruct_preprompt(persona)
+        prompt = "Instruction: "+ context + "\nInput: "+ instruct +"\nResponse:"
+        return prompt
 
     def generate_prompt(self,
                         current_message,
@@ -75,7 +84,11 @@ class ChatBotModel:
                                                        char_greeting, example_dialogue,
                                                        remaining_tokens, delim)
 
-        prompt = context + "\n" + temporary_context +"\n" + f"{char_name}:"
+        current_time = f'The date and time are {datetime.utcnow().strftime("%m/%d/%Y, %H:%M")} UTC'
+
+        instruct = f"Instruction: We are in a Discord server. As {char_name}, respond to the ongoing conversation without repeating previous dialogue.\nResponse:"
+
+        prompt = "Input:\n" + current_time + "\n" + context + "\n" + temporary_context +"\n" + instruct + "\n" + f"{char_name}:"
         return prompt
 
 
